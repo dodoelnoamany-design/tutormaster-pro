@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مدير الدروس - TutorMaster Pro</title>
+    <meta name="theme-color" content="#020617">
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="/assets/icon-192.svg">
+    
+    <!-- Removed external CDN resources to enable full offline use -->
+    <style>
+        :root { color-scheme: dark; }
+        body {
+          font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            background-color: #020617;
+            color: #f8fafc;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .glass-3d {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .nav-glass {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(24px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        #offline-notice {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            z-index: 9999;
+            background: #ef4444;
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+    </style>
+  </head>
+<body class="bg-[#020617]">
+    <div id="offline-notice">تحذير: يرجى فتح الإنترنت "مرة واحدة فقط" لتفعيل التطبيق للعمل أوفلاين.</div>
+    
+    <div id="root"></div>
+
+    
+
+    <script>
+      // التنبيه للمرة الأولى
+      if (!localStorage.getItem('app_initialized')) {
+        if (!navigator.onLine) {
+          document.getElementById('offline-notice').style.display = 'block';
+        } else {
+          localStorage.setItem('app_initialized', 'true');
+        }
+      }
+
+      // تسجيل الـ Service Worker بطريقة آمنة لتجنب مشاكل النطاقات في بيئة التطوير
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          // التحقق من أننا لسنا في بيئة معاينة مقيدة (مثل iframe بـ Origin مختلف)
+          const isLocalhost = Boolean(
+            window.location.hostname === 'localhost' ||
+            window.location.hostname === '[::1]' ||
+            window.location.hostname.match(/^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/)
+          );
+
+          // محاولة التسجيل فقط إذا كان النطاق متوافقاً أو كنا على localhost
+          // في بيئة AI Studio، قد يظهر خطأ Origin Mismatch، لذا سنقوم بلف التسجيل في try/catch
+          try {
+            navigator.serviceWorker.register('/sw.js', { scope: '/' })
+              .then(reg => {
+                console.log('TutorMaster SW Active');
+                if (reg.active) localStorage.setItem('app_initialized', 'true');
+              })
+              .catch(err => {
+                // تجاهل خطأ الـ Origin Mismatch في بيئة المعاينة لأنه لا يؤثر على التطبيق النهائي
+                if (err.message.includes('origin')) {
+                  console.warn('Service Worker registration skipped in preview mode.');
+                } else {
+                  console.error('Service Worker registration failed:', err);
+                }
+              });
+          } catch (e) {
+            console.error('Service Worker initialization error:', e);
+          }
+        });
+      }
+    </script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>

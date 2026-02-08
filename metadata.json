@@ -1,0 +1,7 @@
+{
+  "name": "TutorMaster Pro",
+  "description": "نظام ذكي لإدارة الدروس الخصوصية، تتبع الحصص، وحساب الدخل بدقة للمعلمين.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

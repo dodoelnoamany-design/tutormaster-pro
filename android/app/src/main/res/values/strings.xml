@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">مدير الدروس</string>
+    <string name="title_activity_main">مدير الدروس</string>
+    <string name="package_name">com.tutormaster.pro</string>
+    <string name="custom_url_scheme">com.tutormaster.pro</string>
+</resources>

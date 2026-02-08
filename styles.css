@@ -1,0 +1,217 @@
+/* Light Mode Styles */
+html.light {
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8fafc;
+  --color-bg-tertiary: #f1f5f9;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #64748b;
+  --color-border: rgba(0, 0, 0, 0.1);
+}
+
+html.light body,
+html.light .min-h-screen {
+  background-color: #f8fafc !important;
+  color: #0f172a;
+}
+
+html.light header {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+html.light .glass-3d,
+html.light .nav-glass {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.light h1,
+html.light h2,
+html.light h3,
+html.light .font-black {
+  color: #0f172a !important;
+}
+
+html.light p,
+html.light span {
+  color: #475569 !important;
+}
+
+html.light .text-white {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-500 {
+  color: #64748b !important;
+}
+
+html.light .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+html.light .text-slate-300 {
+  color: #cbd5e1 !important;
+}
+
+html.light .bg-slate-900 {
+  background-color: #f1f5f9 !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+html.light .bg-slate-900\/50 {
+  background-color: rgba(241, 245, 249, 0.5) !important;
+}
+
+html.light .bg-slate-900\/10 {
+  background-color: rgba(241, 245, 249, 0.5) !important;
+}
+
+html.light .bg-\[\#0f172a\] {
+  background-color: #f1f5f9 !important;
+}
+
+html.light .bg-\[\#020617\] {
+  background-color: #f8fafc !important;
+}
+
+html.light .border-white\/5 {
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+html.light .border-white\/10 {
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+html.light .border-white\/20 {
+  border-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+html.light .border-slate-800 {
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+html.light .border-slate-800\/30 {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Blue colors remain similar in light mode for contrast */
+html.light .text-blue-400 {
+  color: #2563eb !important;
+}
+
+html.light .text-blue-500 {
+  color: #3b82f6 !important;
+}
+
+html.light .bg-blue-600\/20 {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+}
+
+html.light .bg-blue-600\/10 {
+  background-color: rgba(59, 130, 246, 0.05) !important;
+}
+
+html.light .border-blue-500\/40 {
+  border-color: rgba(59, 130, 246, 0.4) !important;
+}
+
+html.light .shadow-blue-900\/10 {
+  box-shadow: none !important;
+}
+
+/* Buttons in light mode */
+html.light button {
+  color: #0f172a !important;
+}
+
+html.light .emerald-600,
+html.light .bg-emerald-600 {
+  background-color: #059669 !important;
+  color: white !important;
+}
+
+html.light .bg-red-600\/10 {
+  background-color: rgba(220, 38, 38, 0.1) !important;
+}
+
+html.light .text-red-400 {
+  color: #dc2626 !important;
+}
+
+/* Input fields and form elements */
+html.light input[type="range"],
+html.light input[type="text"],
+html.light input[type="number"],
+html.light input[type="email"],
+html.light input[type="tel"] {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+html.light input[type="range"]::-webkit-slider-thumb {
+  background: #3b82f6 !important;
+}
+
+html.light input[type="range"]::-moz-range-thumb {
+  background: #3b82f6 !important;
+}
+
+/* Scrollbar in light mode */
+html.light .scrollbar-thumb-blue-600\/50 {
+  background-color: rgba(37, 99, 235, 0.4) !important;
+}
+
+html.light .scrollbar-track-white\/5 {
+  background-color: rgba(0, 0, 0, 0.02) !important;
+}
+
+/* Links and interactive elements */
+html.light a {
+  color: #2563eb !important;
+}
+
+html.light a:hover {
+  color: #1d4ed8 !important;
+}
+
+/* Special treatment for the schedule table */
+html.light table {
+  color: #0f172a;
+}
+
+html.light table thead {
+  background-color: transparent;
+}
+
+html.light table tbody tr {
+  background-color: transparent;
+}
+
+/* Ensure text is readable */
+html.light .text-slate-600 {
+  color: #475569 !important;
+}
+
+html.light .text-slate-700 {
+  color: #334155 !important;
+}
+
+/* Making sure amber mode for light theme button stays consistent */
+html.light .bg-amber-500 {
+  background-color: #f59e0b !important;
+}
+
+html.light .border-amber-300 {
+  border-color: #fcd34d !important;
+}
+
+html.light .text-slate-900 {
+  color: #020617 !important;
+}
+
+html.light .shadow-amber-800\/50 {
+  box-shadow: none !important;
+}

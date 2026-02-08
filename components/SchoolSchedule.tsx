@@ -1,0 +1,407 @@
+import React, { useState, useMemo } from 'react';
+import { useSchool } from '../schoolStore';
+import { useSettings } from '../themeStore';
+import { SchoolSession } from '../types';
+
+const SchoolSchedule: React.FC = () => {
+  const { schoolSessions, addSchoolSession, updateSchoolSession, deleteSchoolSession, getSchoolSessionByDay } = useSchool();
+  const { scheduleZoom, setScheduleZoom } = useSettings();
+  const [showZoomMenu, setShowZoomMenu] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [formData, setFormData] = useState<Omit<SchoolSession, 'id' | 'createdAt'>>({
+    name: '',
+    level: '',
+    day: 0,
+    time: '08:00',
+    duration: 60,
+    subject: '',
+    notes: '',
+    teacher: ''
+  });
+
+  const days = [
+    { name: 'السبت', index: 6 },
+    { name: 'الأحد', index: 0 },
+    { name: 'الاثنين', index: 1 },
+    { name: 'الثلاثاء', index: 2 },
+    { name: 'الأربعاء', index: 3 },
+    { name: 'الخميس', index: 4 },
+    { name: 'الجمعة', index: 5 },
+  ];
+
+  const activeDays = useMemo(() => {
+    return days.filter(d => schoolSessions.some(s => s.day === d.index));
+  }, [schoolSessions]);
+
+  const allTimeSlots = useMemo(() => {
+    const slots = [];
+    for (let h = 8; h <= 16; h++) {
+      slots.push({
+        raw: `${h.toString().padStart(2, '0')}:00`,
+        display: `${h}:00`,
+        hour: h
+      });
+    }
+    return slots;
+  }, []);
+
+  const activeTimeSlots = useMemo(() => {
+    return allTimeSlots.filter(slot =>
+      schoolSessions.some(s => {
+        const fsHour = parseInt(s.time.split(':')[0]);
+        return fsHour === slot.hour;
+      })
+    );
+  }, [schoolSessions, allTimeSlots]);
+
+  // إضافة أو تحديث حصة
+  const handleAddSession = () => {
+    if (formData.name && formData.level) {
+      if (editingId) {
+        updateSchoolSession({ ...formData, id: editingId, createdAt: Date.now() });
+        setEditingId(null);
+      } else {
+        addSchoolSession(formData);
+      }
+      setFormData({
+        name: '',
+        level: '',
+        day: 0,
+        time: '08:00',
+        duration: 60,
+        subject: '',
+        notes: '',
+        teacher: ''
+      });
+      setShowAddForm(false);
+    }
+  };
+
+  // الحصول على حصة محددة في وقت ويوم معين
+  const getSessionForSlot = (dayIndex: number, timeStr: string) => {
+    const hour = parseInt(timeStr.split(':')[0]);
+    return schoolSessions.find(s => {
+      const fsHour = parseInt(s.time.split(':')[0]);
+      return s.day === dayIndex && fsHour === hour;
+    });
+  };
+
+  // تحميل بيانات الحصة للتعديل
+  const handleEdit = (session: SchoolSession) => {
+    setFormData({
+      name: session.name,
+      level: session.level,
+      day: session.day,
+      time: session.time,
+      duration: session.duration,
+      subject: session.subject || '',
+      notes: session.notes || '',
+      teacher: session.teacher || ''
+    });
+    setEditingId(session.id);
+    setShowAddForm(true);
+  };
+
+  // حذف مع تأكيد
+  const handleDeleteConfirm = (sessionId: string) => {
+    deleteSchoolSession(sessionId);
+    setDeleteConfirmId(null);
+  };
+
+  // إلغاء العملية والعودة للوضع الطبيعي
+  const handleCancel = () => {
+    setShowAddForm(false);
+    setEditingId(null);
+    setFormData({
+      name: '',
+      level: '',
+      day: 0,
+      time: '08:00',
+      duration: 60,
+      subject: '',
+      notes: '',
+      teacher: ''
+    });
+  };
+
+  if (activeDays.length === 0 && !showAddForm) {
+    return (
+      <div className="space-y-6 page-transition pb-24 text-center py-20">
+        <div className="glass-3d p-10 rounded-[3rem] border-dashed border-slate-800 mx-2">
+          <div className="w-20 h-20 bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="h-10 w-10 text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 6v6m0 0v6M6 9h6m0 0h6" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-black text-white mb-2">لم تضف أي حصص مدرسية</h3>
+          <p className="text-slate-500 text-sm font-bold mb-4">ابدأ بإضافة الحصص المدرسية للجدول</p>
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="bg-blue-600 text-white px-6 py-2 rounded-xl font-black text-sm"
+          >
+            إضافة حصة
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 page-transition pb-24">
+      <div className="px-2 space-y-1 flex items-start justify-between">
+        <div className="space-y-1">
+          <h2 className="text-2xl font-black text-white">جدول الحصص المدرسية</h2>
+          <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest">الجدول الأسبوعي للحصص</p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="w-10 h-10 rounded-xl glass-3d flex items-center justify-center text-blue-400 hover:border-blue-500/30 transition-all"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+          <div className="relative">
+            <button
+              onClick={() => setShowZoomMenu(!showZoomMenu)}
+              className="w-10 h-10 rounded-xl glass-3d flex items-center justify-center text-slate-400 hover:text-blue-400 hover:border-blue-500/30 transition-all"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
+              </svg>
+            </button>
+            {showZoomMenu && (
+              <div className="absolute top-12 right-0 bg-slate-900 border border-white/10 rounded-xl shadow-2xl p-3 space-y-2 z-50 min-w-[200px]">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[11px] font-black text-slate-300">التصغير/التكبير</span>
+                  <span className="text-[10px] font-black text-blue-400">{(scheduleZoom * 100).toFixed(0)}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="10"
+                  max="200"
+                  step="10"
+                  value={scheduleZoom * 100}
+                  onChange={(e) => setScheduleZoom(parseInt(e.target.value) / 100)}
+                  className="w-full"
+                />
+                <div className="flex gap-2 pt-2 border-t border-white/5">
+                  <button
+                    onClick={() => setScheduleZoom(0.1)}
+                    className="flex-1 py-2 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-[10px] font-black text-slate-300 transition-all"
+                  >
+                    صغر
+                  </button>
+                  <button
+                    onClick={() => setScheduleZoom(1)}
+                    className="flex-1 py-2 rounded-lg bg-blue-600/30 hover:bg-blue-600/50 text-[10px] font-black text-blue-300 transition-all"
+                  >
+                    عادي
+                  </button>
+                  <button
+                    onClick={() => setScheduleZoom(2)}
+                    className="flex-1 py-2 rounded-lg bg-slate-800/50 hover:bg-slate-800 text-[10px] font-black text-slate-300 transition-all"
+                  >
+                    كبر
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* نموذج إضافة/تعديل الحصة */}
+      {showAddForm && (
+        <div className="px-2 glass-3d p-6 rounded-[2rem] border-white/5 space-y-4">
+          <h3 className="text-lg font-black text-white">
+            {editingId ? '✏️ تعديل الحصة' : '➕ إضافة حصة جديدة'}
+          </h3>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <input
+              type="text"
+              placeholder="اسم الحصة"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="bg-slate-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-blue-500/50 transition-colors"
+            />
+            <input
+              type="text"
+              placeholder="المستوى/الصف"
+              value={formData.level}
+              onChange={(e) => setFormData({ ...formData, level: e.target.value })}
+              className="bg-slate-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-blue-500/50 transition-colors"
+            />
+            <select
+              value={formData.day}
+              onChange={(e) => setFormData({ ...formData, day: parseInt(e.target.value) })}
+              className="bg-slate-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-blue-500/50 transition-colors"
+            >
+              {days.map(d => (
+                <option key={d.index} value={d.index}>{d.name}</option>
+              ))}
+            </select>
+            <input
+              type="time"
+              value={formData.time}
+              onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+              className="bg-slate-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-blue-500/50 transition-colors"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <input
+              type="text"
+              placeholder="المادة"
+              value={formData.subject || ''}
+              onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+              className="bg-slate-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-blue-500/50 transition-colors"
+            />
+            <input
+              type="text"
+              placeholder="المعلم"
+              value={formData.teacher || ''}
+              onChange={(e) => setFormData({ ...formData, teacher: e.target.value })}
+              className="bg-slate-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-blue-500/50 transition-colors"
+            />
+          </div>
+
+          <textarea
+            placeholder="ملاحظات"
+            value={formData.notes || ''}
+            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            className="bg-slate-900 border border-white/10 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-blue-500/50 transition-colors w-full"
+            rows={2}
+          />
+
+          <div className="flex gap-2 pt-2">
+            <button
+              onClick={handleAddSession}
+              className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-black text-sm transition-colors"
+            >
+              {editingId ? '✓ تحديث' : '✓ حفظ'}
+            </button>
+            <button
+              onClick={handleCancel}
+              className="flex-1 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl font-black text-sm transition-colors"
+            >
+              ✕ إلغاء
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* الجدول الأسبوعي */}
+      {activeDays.length > 0 && (
+        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-blue-600/50 scrollbar-track-white/5 pt-2" style={{ transform: 'scaleX(-1)' }}>
+          <div className="min-w-max bg-[#0f172a] rounded-[2rem] p-4 border border-white/5 shadow-2xl relative" style={{ transform: 'scaleX(-1)', transformOrigin: 'center' }}>
+            <table className="w-full border-separate relative z-10" style={{ borderSpacing: `${6 * scheduleZoom}px` }}>
+              <thead>
+                <tr>
+                  <th className="pb-3" style={{ width: `${80 * scheduleZoom}px` }}></th>
+                  {activeDays.map(day => (
+                    <th key={day.index} className="pb-3" style={{ minWidth: `${140 * scheduleZoom}px` }}>
+                      <div className="bg-slate-900 border border-white/10 rounded-xl py-2 text-[10px] font-black text-blue-400 shadow-sm" style={{ padding: `${8 * scheduleZoom}px ${12 * scheduleZoom}px`, fontSize: `${10 * scheduleZoom}px` }}>
+                        {day.name}
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {activeTimeSlots.map(slot => (
+                  <tr key={slot.raw}>
+                    <td className="pr-2 py-1" style={{ paddingRight: `${8 * scheduleZoom}px` }}>
+                      <span className="text-[9px] font-black text-slate-500 whitespace-nowrap block text-center bg-slate-900/50 rounded-lg border border-white/5" style={{ padding: `${4 * scheduleZoom}px ${8 * scheduleZoom}px`, fontSize: `${9 * scheduleZoom}px` }}>
+                        {slot.display}
+                      </span>
+                    </td>
+                    {activeDays.map(day => {
+                      const session = getSessionForSlot(day.index, slot.raw);
+                      return (
+                        <td key={`${day.index}-${slot.raw}`} style={{ height: `${80 * scheduleZoom}px` }}>
+                          <div 
+                            className={`w-full h-full rounded-xl border transition-all relative ${
+                              session 
+                                ? 'bg-purple-600/20 border-purple-500/40 shadow-lg shadow-purple-900/10 flex flex-col items-center justify-center p-1.5 text-center group hover:bg-purple-600/30 cursor-pointer' 
+                                : 'bg-slate-900/10 border-dashed border-slate-800/30'
+                            }`}
+                            onClick={() => session && handleEdit(session)}
+                          >
+                            {session ? (
+                              <>
+                                <span className="text-[9px] font-black text-white truncate w-full" style={{ fontSize: `${8 * scheduleZoom}px` }}>
+                                  {session.name}
+                                </span>
+                                <span className="text-[7px] text-purple-400 opacity-80" style={{ fontSize: `${6 * scheduleZoom}px` }}>
+                                  {session.level}
+                                </span>
+                                {session.teacher && (
+                                  <span className="text-[6px] text-slate-400" style={{ fontSize: `${5 * scheduleZoom}px` }}>
+                                    {session.teacher}
+                                  </span>
+                                )}
+                              </>
+                            ) : null}
+                            
+                            {/* زر الحذف - يظهر عند التمرير */}
+                            {session && (
+                              <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDeleteConfirmId(session.id);
+                                  }}
+                                  className="w-6 h-6 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center text-white text-[12px] font-black transition-colors"
+                                  title="حذف الحصة"
+                                >
+                                  🗑️
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Modal تأكيد الحذف */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[200] p-4">
+          <div className="bg-slate-900 border border-white/10 rounded-2xl p-6 max-w-sm w-full glass-3d">
+            <h4 className="text-lg font-black text-white mb-2">تأكيد الحذف</h4>
+            <p className="text-slate-300 text-sm mb-6">
+              هل أنت متأكد من رغبتك في حذف هذه الحصة؟ هذا الإجراء لا يمكن التراجع عنه.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => handleDeleteConfirm(deleteConfirmId)}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-xl font-black transition-colors"
+              >
+                ✓ حذف
+              </button>
+              <button
+                onClick={() => setDeleteConfirmId(null)}
+                className="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-xl font-black transition-colors"
+              >
+                ✕ إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default SchoolSchedule;

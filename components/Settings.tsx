@@ -30,97 +30,24 @@ const Settings: React.FC = () => {
     text: 'لون النص'
   };
 
-  const handleExport = async () => {
-    try {
-      const { Filesystem, Directory } = await import('@capacitor/filesystem');
-      const data = exportData();
-      const fileName = `tutor-backup-${new Date().toISOString().split('T')[0]}.json`;
+  const handleExport = () => {
+    const data = exportData();
+    const fileName = `tutor-backup-${new Date().toISOString().split('T')[0]}.json`;
 
-      // Try to save to Downloads folder first
-      try {
-        await Filesystem.writeFile({
-          path: fileName,
-          data: btoa(data),
-          directory: Directory.Downloads,
-        });
-        alert(`تم حفظ النسخة الاحتياطية في مجلد التحميلات باسم: ${fileName}`);
-      } catch (downloadsError) {
-        // Fallback to Documents folder
-        try {
-          await Filesystem.writeFile({
-            path: fileName,
-            data: btoa(data),
-            directory: Directory.Documents,
-          });
-          alert(`تم حفظ النسخة الاحتياطية في مجلد الوثائق باسم: ${fileName}`);
-        } catch (documentsError) {
-          // Final fallback to browser download
-          const element = document.createElement('a');
-          element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data));
-          element.setAttribute('download', fileName);
-          element.style.display = 'none';
-          document.body.appendChild(element);
-          element.click();
-          document.body.removeChild(element);
-          alert('تم تحميل النسخة الاحتياطية. يرجى اختيار المسار يدوياً.');
-        }
-      }
-    } catch (error) {
-      console.error('خطأ في حفظ النسخة الاحتياطية:', error);
-      // Fallback to browser download
-      const data = exportData();
-      const fileName = `tutor-backup-${new Date().toISOString().split('T')[0]}.json`;
-      const element = document.createElement('a');
-      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data));
-      element.setAttribute('download', fileName);
-      element.style.display = 'none';
-      document.body.appendChild(element);
-      element.click();
-      document.body.removeChild(element);
-      alert('تم تحميل النسخة الاحتياطية. يرجى اختيار المسار يدوياً.');
-    }
+    // Create download link for manual path selection
+    const element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data));
+    element.setAttribute('download', fileName);
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+
+    alert('اختر المسار لحفظ النسخة الاحتياطية');
   };
 
-  const handleImportClick = async () => {
-    try {
-      // Try to read from Downloads folder first
-      const { Filesystem, Directory } = await import('@capacitor/filesystem');
-      const fileName = `tutor-backup-${new Date().toISOString().split('T')[0]}.json`;
-
-      try {
-        const file = await Filesystem.readFile({
-          path: fileName,
-          directory: Directory.Downloads,
-        });
-        const data = atob(file.data);
-        if (importData(data)) {
-          alert('تم استعادة النسخة الاحتياطية من مجلد التحميلات بنجاح!');
-        } else {
-          alert('فشل في استعادة النسخة الاحتياطية. الملف قد يكون تالفاً.');
-        }
-      } catch (downloadsError) {
-        // Try Documents folder
-        try {
-          const file = await Filesystem.readFile({
-            path: fileName,
-            directory: Directory.Documents,
-          });
-          const data = atob(file.data);
-          if (importData(data)) {
-            alert('تم استعادة النسخة الاحتياطية من مجلد الوثائق بنجاح!');
-          } else {
-            alert('فشل في استعادة النسخة الاحتياطية. الملف قد يكون تالفاً.');
-          }
-        } catch (documentsError) {
-          // Fallback to file input
-          fileInputRef.current?.click();
-        }
-      }
-    } catch (error) {
-      console.error('خطأ في قراءة النسخة الاحتياطية:', error);
-      // Fallback to file input
-      fileInputRef.current?.click();
-    }
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -265,10 +192,14 @@ const Settings: React.FC = () => {
           </div>
 
           <button
-            onClick={resetCustomColors}
-            className="w-full py-2 px-4 rounded-xl font-black text-sm text-slate-300 bg-slate-800/50 hover:bg-slate-800 border border-white/10 transition-all"
+            onClick={() => {
+              // Force re-render by updating state
+              setCustomColors({ ...customColors });
+              alert('تم تطبيق الألوان الجديدة!');
+            }}
+            className="w-full py-2 px-4 rounded-xl font-black text-sm text-white bg-purple-600/80 hover:bg-purple-600 border border-purple-400/30 transition-all"
           >
-            إعادة تعيين الألوان
+            تطبيق الألوان
           </button>
         </div>
       </div>

@@ -5,6 +5,52 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom color variables for dynamic theming */
+:root {
+  --color-primary: #3b82f6;
+  --color-secondary: #1e40af;
+  --color-accent: #f59e0b;
+  --color-background: #020617;
+  --color-text: #f8fafc;
+}
+
+/* Apply custom colors to common elements */
+.custom-primary {
+  background-color: var(--color-primary) !important;
+}
+
+.custom-secondary {
+  background-color: var(--color-secondary) !important;
+}
+
+.custom-accent {
+  background-color: var(--color-accent) !important;
+}
+
+.custom-text {
+  color: var(--color-text) !important;
+}
+
+.custom-bg {
+  background-color: var(--color-background) !important;
+}
+
+/* Dynamic button colors */
+.btn-primary {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.btn-secondary {
+  background-color: var(--color-secondary);
+  border-color: var(--color-secondary);
+}
+
+.btn-accent {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
 /* Mobile-first responsive design - Portrait mode optimization */
 @media (orientation: portrait) {
   /* Ensure proper spacing and sizing for portrait mode */

@@ -16,6 +16,26 @@ const Settings: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [showTeacherProfile, setShowTeacherProfile] = useState(false);
+  const [backupPath, setBackupPath] = useState<string>('مجلد الوثائق/TutorMaster/');
+  const [lastBackupPath, setLastBackupPath] = useState<string>('');
+
+  const changeBackupPath = async () => {
+    try {
+      // Try to use File System Access API for directory selection
+      if ('showDirectoryPicker' in window) {
+        const dirHandle = await (window as any).showDirectoryPicker();
+        const path = dirHandle.name;
+        setBackupPath(path);
+        alert(`تم تغيير مسار النسخ الاحتياطي إلى: ${path}`);
+        return;
+      }
+    } catch (error) {
+      console.log('Directory picker not supported or cancelled');
+    }
+
+    // Fallback: show message about current path
+    alert(`المسار الحالي: ${backupPath}\n\nفي التطبيق المثبت، يمكنك تغيير المسار من إعدادات التطبيق > صلاحيات > الوصول للملفات`);
+  };
 
   const colorOptions = [
     '#3b82f6', '#a855f7', '#10b981', '#ef4444', '#06b6d4', '#ec4899', '#f97316', '#eab308', '#6b7280', '#1f2937',
@@ -304,6 +324,24 @@ const Settings: React.FC = () => {
               </svg>
               تصفح واختر المسار
             </button>
+
+            <button
+              onClick={changeBackupPath}
+              className="w-full py-3 px-4 rounded-xl font-black text-sm text-white bg-orange-600/80 hover:bg-orange-600 border border-orange-400/30 transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-900/20"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z" />
+              </svg>
+              تغيير مكان الحفظ
+            </button>
+
+            {lastBackupPath && (
+              <div className="p-3 bg-slate-800/50 rounded-xl border border-slate-600/30">
+                <p className="text-[11px] text-slate-400 font-bold">آخر نسخ احتياطي:</p>
+                <p className="text-[10px] text-slate-300 mt-1">{lastBackupPath}</p>
+              </div>
+            )}
 
             <button
               onClick={handleImportClick}

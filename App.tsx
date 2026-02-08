@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppProvider } from './store';
 import { SettingsProvider } from './themeStore';
 import { SchoolProvider } from './schoolStore';
@@ -12,9 +12,26 @@ import FinanceReport from './components/FinanceReport';
 import Settings from './components/Settings';
 import BottomNav from './components/BottomNav';
 import Header from './components/Header';
+import { Filesystem } from '@capacitor/filesystem';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'students' | 'sessions' | 'appointments' | 'school' | 'finance' | 'settings'>('dashboard');
+
+  // Request file system permissions on app start
+  useEffect(() => {
+    const requestFilePermissions = async () => {
+      try {
+        const permissions = await Filesystem.requestPermissions();
+        if (permissions.publicStorage !== 'granted') {
+          console.log('File permissions not granted - backup feature may not work properly');
+        }
+      } catch (error) {
+        console.log('Error requesting file permissions:', error);
+      }
+    };
+
+    requestFilePermissions();
+  }, []);
 
   const renderContent = () => {
     switch (activeTab) {

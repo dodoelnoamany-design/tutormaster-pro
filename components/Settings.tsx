@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useSettings } from '../themeStore';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 
 const Settings: React.FC = () => {
   const {
@@ -31,43 +32,50 @@ const Settings: React.FC = () => {
   };
 
   const handleExport = async () => {
-    const data = exportData();
-    const now = new Date();
-    const fileName = `Backup_${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}_${now.getHours().toString().padStart(2,'0')}-${now.getMinutes().toString().padStart(2,'0')}.json`;
-
     try {
-      // Try to use File System Access API if available (modern browsers)
-      if ('showSaveFilePicker' in window) {
-        const options = {
-          suggestedName: fileName,
-          types: [{
-            description: 'JSON Backup File',
-            accept: { 'application/json': ['.json'] }
-          }]
-        };
+      const data = exportData();
+      const now = new Date();
+      const fileName = `Backup_${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}_${now.getHours().toString().padStart(2,'0')}-${now.getMinutes().toString().padStart(2,'0')}.json`;
 
-        const fileHandle = await (window as any).showSaveFilePicker(options);
-        const writable = await fileHandle.createWritable();
-        await writable.write(data);
-        await writable.close();
-
-        alert('تم حفظ النسخة الاحتياطية بنجاح!');
+      // Request permissions for file access
+      const permissions = await Filesystem.requestPermissions();
+      if (permissions.publicStorage !== 'granted') {
+        alert('يجب منح صلاحية الوصول للملفات لحفظ النسخة الاحتياطية');
         return;
       }
+
+      // Use Capacitor Filesystem to save the file
+      const result = await Filesystem.writeFile({
+        path: fileName,
+        data: data,
+        directory: Directory.ExternalStorage,
+        encoding: Encoding.UTF8,
+      });
+
+      alert('تم حفظ النسخة الاحتياطية بنجاح في: ' + result.uri);
+
     } catch (error) {
-      console.log('File System Access API not supported or user cancelled, falling back to download');
+      console.error('خطأ في حفظ النسخة الاحتياطية:', error);
+
+      // Fallback to browser download if Capacitor fails
+      try {
+        const data = exportData();
+        const now = new Date();
+        const fileName = `Backup_${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}_${now.getHours().toString().padStart(2,'0')}-${now.getMinutes().toString().padStart(2,'0')}.json`;
+
+        const element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data));
+        element.setAttribute('download', fileName);
+        element.style.display = 'none';
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+
+        alert('تم تحميل النسخة الاحتياطية. اختر المكان لحفظها.');
+      } catch (fallbackError) {
+        alert('حدث خطأ في حفظ النسخة الاحتياطية. تأكد من منح الصلاحيات المطلوبة.');
+      }
     }
-
-    // Fallback to download method
-    const element = document.createElement('a');
-    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data));
-    element.setAttribute('download', fileName);
-    element.style.display = 'none';
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-
-    alert('تم تحميل النسخة الاحتياطية. اختر المكان لحفظها.');
   };
 
   const handleImportClick = () => {
